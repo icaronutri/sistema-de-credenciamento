@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function isMaster() {
+      return isSignedIn() && (
+        getUserData().perfil == 'MASTER' ||
+        request.auth.token.email == 'icarogarciacel@gmail.com'
+      );
+    }
+
+    function isUnidade(unidadeId) {
+      return isSignedIn() && (
+        isMaster() ||
+        (getUserData().perfil == 'UNIDADE' && getUserData().unidadeId == unidadeId)
+      );
+    }
+
+    function isOficina(oficinaId) {
+      return isSignedIn() && (
+        isMaster() ||
+        (getUserData().perfil == 'OFICINA' && getUserData().oficinaId == oficinaId)
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Users
+    match /usuarios/{usuarioId} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+
+    // Unidades
+    match /unidades/{unidadeId} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+
+    // Viaturas
+    match /viaturas/{viaturaId} {
+      allow read: if isSignedIn() && (
+        isMaster() ||
+        (getUserData().perfil == 'UNIDADE' && resource.data.unidadeId == getUserData().unidadeId) ||
+        getUserData().perfil == 'OFICINA'
+      );
+      allow create, update, delete: if isMaster() || (
+        isSignedIn() && getUserData().perfil == 'UNIDADE' && request.resource.data.unidadeId == getUserData().unidadeId
+      );
+    }
+
+    // Oficinas
+    match /oficinas/{oficinaId} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+
+    // Ordens de Serviço
+    match /ordensServico/{osId} {
+      allow get: if isSignedIn() && (
+        isMaster() ||
+        (getUserData().perfil == 'UNIDADE' && resource.data.unidadeId == getUserData().unidadeId) ||
+        (getUserData().perfil == 'OFICINA' && resource.data.oficinaId == getUserData().oficinaId)
+      );
+
+      allow list: if isSignedIn() && (
+        isMaster() ||
+        (getUserData().perfil == 'UNIDADE' && resource.data.unidadeId == getUserData().unidadeId) ||
+        (getUserData().perfil == 'OFICINA' && resource.data.oficinaId == getUserData().oficinaId)
+      );
+
+      allow create: if isMaster() || (
+        isSignedIn() &&
+        getUserData().perfil == 'UNIDADE' &&
+        request.resource.data.unidadeId == getUserData().unidadeId
+      );
+
+      allow update: if isMaster() || (
+        isSignedIn() && (
+          // UNIDADE can only update remarks or cancel if not yet approved
+          (getUserData().perfil == 'UNIDADE' && resource.data.unidadeId == getUserData().unidadeId) ||
+          // OFICINA can update status (diagnóstico, execução, serviço concluído) if assigned
+          (getUserData().perfil == 'OFICINA' && resource.data.oficinaId == getUserData().oficinaId)
+        )
+      );
+
+      allow delete: if isMaster();
+
+      // Subcollections
+      match /itensOrcamento/{itemId} {
+        allow read: if isSignedIn();
+        allow write: if isMaster() || (
+          isSignedIn() && (
+            (getUserData().perfil == 'OFICINA' && get(/databases/$(database)/documents/ordensServico/$(osId)).data.oficinaId == getUserData().oficinaId)
+          )
+        );
+      }
+
+      match /aprovacoes/{aprovacaoId} {
+        allow read: if isSignedIn();
+        allow write: if isMaster();
+      }
+
+      match /documentos/{docId} {
+        allow read: if isSignedIn();
+        allow create, update: if isSignedIn();
+        allow delete: if isMaster();
+      }
+
+      match /historico/{histId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if false; // Immutable audit trail
+      }
+    }
+  }
+}

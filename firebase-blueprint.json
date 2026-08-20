@@ -1,0 +1,246 @@
+{
+  "entities": {
+    "Usuario": {
+      "title": "Usuario",
+      "description": "Usuário do sistema com perfil de acesso e vínculos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "nome": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 150 },
+        "perfil": { "type": "string", "enum": ["MASTER", "UNIDADE", "OFICINA"] },
+        "unidadeId": { "type": "string", "maxLength": 128 },
+        "oficinaId": { "type": "string", "maxLength": 128 },
+        "cargo": { "type": "string", "maxLength": 100 },
+        "telefone": { "type": "string", "maxLength": 30 },
+        "ativo": { "type": "boolean" },
+        "criadoEm": { "type": "string", "maxLength": 50 },
+        "atualizadoEm": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "nome", "email", "perfil", "ativo", "criadoEm"]
+    },
+    "Unidade": {
+      "title": "Unidade",
+      "description": "Unidade operacional gestora de viaturas",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "nome": { "type": "string", "maxLength": 150 },
+        "sigla": { "type": "string", "maxLength": 30 },
+        "cidade": { "type": "string", "maxLength": 100 },
+        "estado": { "type": "string", "maxLength": 10 },
+        "contato": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "telefone": { "type": "string", "maxLength": 30 },
+        "ativo": { "type": "boolean" },
+        "criadoEm": { "type": "string", "maxLength": 50 },
+        "atualizadoEm": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "nome", "sigla", "cidade", "estado", "ativo", "criadoEm"]
+    },
+    "Viatura": {
+      "title": "Viatura",
+      "description": "Viatura operacional da frota",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "prefixo": { "type": "string", "maxLength": 30 },
+        "placa": { "type": "string", "maxLength": 20 },
+        "nomeModelo": { "type": "string", "maxLength": 100 },
+        "marca": { "type": "string", "maxLength": 100 },
+        "ano": { "type": "number" },
+        "setor": { "type": "string", "maxLength": 100 },
+        "tipo": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["DISPONIVEL", "EM_MANUTENCAO", "BAIXADA", "RESERVA"] },
+        "unidadeId": { "type": "string", "maxLength": 128 },
+        "odometroAtual": { "type": "number" },
+        "observacoes": { "type": "string", "maxLength": 500 },
+        "ativo": { "type": "boolean" },
+        "criadoEm": { "type": "string", "maxLength": 50 },
+        "atualizadoEm": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "prefixo", "placa", "nomeModelo", "marca", "status", "unidadeId", "ativo", "criadoEm"]
+    },
+    "Oficina": {
+      "title": "Oficina",
+      "description": "Oficina credenciada para manutenção",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "nome": { "type": "string", "maxLength": 150 },
+        "razaoSocial": { "type": "string", "maxLength": 150 },
+        "cnpj": { "type": "string", "maxLength": 30 },
+        "contato": { "type": "string", "maxLength": 100 },
+        "telefone": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 150 },
+        "especialidades": { "type": "array" },
+        "situacaoCredenciamento": { "type": "string", "enum": ["ATIVO", "SUSPENSO", "EM_RENOVACAO", "INATIVO"] },
+        "dataCredenciamento": { "type": "string", "maxLength": 50 },
+        "validadeCredenciamento": { "type": "string", "maxLength": 50 },
+        "ativo": { "type": "boolean" },
+        "criadoEm": { "type": "string", "maxLength": 50 },
+        "atualizadoEm": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "nome", "cnpj", "situacaoCredenciamento", "ativo", "criadoEm"]
+    },
+    "OrdemServico": {
+      "title": "OrdemServico",
+      "description": "Ordem de Serviço de manutenção de viatura",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "numeroOS": { "type": "string", "maxLength": 50 },
+        "unidadeId": { "type": "string", "maxLength": 128 },
+        "viaturaId": { "type": "string", "maxLength": 128 },
+        "prefixo": { "type": "string", "maxLength": 30 },
+        "placa": { "type": "string", "maxLength": 20 },
+        "nomeViatura": { "type": "string", "maxLength": 100 },
+        "oficinaId": { "type": "string", "maxLength": 128 },
+        "tipoManutencao": { "type": "string", "enum": ["PREVENTIVA", "CORRETIVA", "EMERGENCIAL", "REVISAO_PROGRAMADA"] },
+        "descricaoProblema": { "type": "string", "maxLength": 2000 },
+        "prioridade": { "type": "string", "enum": ["BAIXA", "NORMAL", "ALTA", "URGENTE"] },
+        "status": { "type": "string", "enum": [
+          "ABERTA", "ENVIADA_A_OFICINA", "AGUARDANDO_ORCAMENTO", "AGUARDANDO_APROVACAO",
+          "APROVADA", "DEVOLVIDA_PARA_CORRECAO", "EM_EXECUCAO", "SERVICO_CONCLUIDO",
+          "AGUARDANDO_DOCUMENTOS", "AGUARDANDO_CONFERENCIA", "FINALIZADA", "CANCELADA"
+        ]},
+        "valorEstimado": { "type": "number" },
+        "valorAprovado": { "type": "number" },
+        "valorFinal": { "type": "number" },
+        "dataAbertura": { "type": "string", "maxLength": 50 },
+        "dataEnvioOficina": { "type": "string", "maxLength": 50 },
+        "dataRespostaOficina": { "type": "string", "maxLength": 50 },
+        "dataAprovacao": { "type": "string", "maxLength": 50 },
+        "dataInicio": { "type": "string", "maxLength": 50 },
+        "dataConclusao": { "type": "string", "maxLength": 50 },
+        "dataConferencia": { "type": "string", "maxLength": 50 },
+        "dataFinalizacao": { "type": "string", "maxLength": 50 },
+        "responsavelId": { "type": "string", "maxLength": 128 },
+        "observacoes": { "type": "string", "maxLength": 2000 },
+        "criadaPor": { "type": "string", "maxLength": 150 },
+        "criadoEm": { "type": "string", "maxLength": 50 },
+        "atualizadoEm": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "numeroOS", "unidadeId", "viaturaId", "prefixo", "status", "criadoEm"]
+    },
+    "ItemOrcamento": {
+      "title": "ItemOrcamento",
+      "description": "Item de peça ou serviço no orçamento da OS",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "osId": { "type": "string", "maxLength": 128 },
+        "tipoItem": { "type": "string", "enum": ["PECA", "SERVICO"] },
+        "descricao": { "type": "string", "maxLength": 300 },
+        "quantidade": { "type": "number" },
+        "unidadeMedida": { "type": "string", "maxLength": 20 },
+        "valorUnitario": { "type": "number" },
+        "valorTotal": { "type": "number" },
+        "aprovado": { "type": "boolean" },
+        "observacao": { "type": "string", "maxLength": 500 },
+        "criadoEm": { "type": "string", "maxLength": 50 },
+        "atualizadoEm": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "osId", "tipoItem", "descricao", "quantidade", "valorUnitario", "valorTotal", "criadoEm"]
+    },
+    "Aprovacao": {
+      "title": "Aprovacao",
+      "description": "Registro de decisão e aprovação da OS",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "osId": { "type": "string", "maxLength": 128 },
+        "tipo": { "type": "string", "maxLength": 50 },
+        "usuarioId": { "type": "string", "maxLength": 128 },
+        "decisao": { "type": "string", "enum": ["APROVADO", "DEVOLVIDO", "REJEITADO"] },
+        "observacao": { "type": "string", "maxLength": 1000 },
+        "valorAprovado": { "type": "number" },
+        "dataHora": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "osId", "usuarioId", "decisao", "dataHora"]
+    },
+    "DocumentoOS": {
+      "title": "DocumentoOS",
+      "description": "Documento anexo da OS (NF, Orçamento, Laudo, Foto)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "osId": { "type": "string", "maxLength": 128 },
+        "unidadeId": { "type": "string", "maxLength": 128 },
+        "oficinaId": { "type": "string", "maxLength": 128 },
+        "tipoDocumento": { "type": "string", "enum": ["ORCAMENTO", "NOTA_FISCAL", "RECIBO", "LAUDO", "RELATORIO", "FOTO", "GARANTIA", "OUTRO"] },
+        "numeroDocumento": { "type": "string", "maxLength": 100 },
+        "dataEmissao": { "type": "string", "maxLength": 50 },
+        "valor": { "type": "number" },
+        "nomeArquivo": { "type": "string", "maxLength": 255 },
+        "storagePath": { "type": "string", "maxLength": 500 },
+        "downloadUrl": { "type": "string", "maxLength": 1000 },
+        "statusDocumento": { "type": "string", "enum": ["PENDENTE", "RECEBIDO", "CONFERIDO", "REJEITADO"] },
+        "conferidoPor": { "type": "string", "maxLength": 128 },
+        "dataConferencia": { "type": "string", "maxLength": 50 },
+        "motivoRejeicao": { "type": "string", "maxLength": 1000 },
+        "driveFileId": { "type": "string", "maxLength": 150 },
+        "driveWebViewLink": { "type": "string", "maxLength": 500 },
+        "driveSyncStatus": { "type": "string", "enum": ["NAO_CONECTADO", "PENDENTE", "SINCRONIZADO", "ERRO"] },
+        "criadoEm": { "type": "string", "maxLength": 50 },
+        "atualizadoEm": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "osId", "tipoDocumento", "nomeArquivo", "statusDocumento", "criadoEm"]
+    },
+    "HistoricoOS": {
+      "title": "HistoricoOS",
+      "description": "Log de auditoria e linha do tempo da OS",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "osId": { "type": "string", "maxLength": 128 },
+        "usuarioId": { "type": "string", "maxLength": 128 },
+        "usuarioNome": { "type": "string", "maxLength": 150 },
+        "evento": { "type": "string", "maxLength": 200 },
+        "statusAnterior": { "type": "string", "maxLength": 50 },
+        "novoStatus": { "type": "string", "maxLength": 50 },
+        "observacao": { "type": "string", "maxLength": 2000 },
+        "dataHora": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "osId", "usuarioNome", "evento", "dataHora"]
+    }
+  },
+  "firestore": {
+    "/usuarios/{usuarioId}": {
+      "schema": "Usuario",
+      "description": "Coleção de usuários do sistema"
+    },
+    "/unidades/{unidadeId}": {
+      "schema": "Unidade",
+      "description": "Coleção de unidades operacionais"
+    },
+    "/viaturas/{viaturaId}": {
+      "schema": "Viatura",
+      "description": "Coleção de viaturas operacionais"
+    },
+    "/oficinas/{oficinaId}": {
+      "schema": "Oficina",
+      "description": "Coleção de oficinas credenciadas"
+    },
+    "/ordensServico/{osId}": {
+      "schema": "OrdemServico",
+      "description": "Coleção central de Ordens de Serviço"
+    },
+    "/ordensServico/{osId}/itensOrcamento/{itemId}": {
+      "schema": "ItemOrcamento",
+      "description": "Subcoleção de itens de peças e serviços da OS"
+    },
+    "/ordensServico/{osId}/aprovacoes/{aprovacaoId}": {
+      "schema": "Aprovacao",
+      "description": "Subcoleção de decisões de aprovação da OS"
+    },
+    "/ordensServico/{osId}/documentos/{docId}": {
+      "schema": "DocumentoOS",
+      "description": "Subcoleção de documentos da OS"
+    },
+    "/ordensServico/{osId}/historico/{histId}": {
+      "schema": "HistoricoOS",
+      "description": "Subcoleção de eventos de histórico da OS"
+    }
+  }
+}
